@@ -1,0 +1,61 @@
+services:
+  web:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./app:/usr/share/nginx/html
+    depends_on:
+      - app
+
+  database:
+    image: mariadb:10.11
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_PORT: 3306
+      MARIADB_DATABASE: test
+      MARIADB_USER: test
+      MARIADB_PASSWORD: test
+    volumes:
+      - ./app/db:/docker-entrypoint-initdb.d:ro 
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-uroot", "-proot", "--silent"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 60s
+    restart: unless-stopped
+
+  app:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "5000:5000"
+    command: python python_api.py
+    depends_on:
+      - database
+
+  calculate:
+    build: 
+      context: ./app
+      dockerfile: Dockerfile
+    working_dir: /app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8000:8000"
+    # ВАЖНО: здесь main.py лежит в /app/calculate
+    # значит модуль называется calculate.main
+    command: uvicorn calculate.main:app --host 0.0.0.0 --port 8000
+    depends_on:
+      - database
+      - app
+
+
+volumes:
+  db_data:

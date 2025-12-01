@@ -1,0 +1,4 @@
+loan_id,loan_type,opened_date,closed_date,remaining_balance,monthly_installment,credit_limit,status,current_arrears_days,max_arrears_last_12m
+L001,consumer,2019-05-10,,10000,500,,ACTIVE,0,10
+L002,credit_card,2021-03-01,,2000,150,5000,ACTIVE,5,30
+L003,auto,2017-09-15,2023-01-20,0,0,,CLOSED,0,0

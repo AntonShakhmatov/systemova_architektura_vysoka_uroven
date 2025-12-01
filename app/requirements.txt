@@ -1,0 +1,7 @@
+fastapi
+pydantic
+flask
+sentence-transformers
+sqlalchemy
+pymysql
+python-dotenv
