@@ -18,11 +18,17 @@ class Mailing:
         lastname: str,
         birthdate: str,
         rodne_cislo: str,
+        employment_place: str,
+        employment_type: str,
+        monthly_income:float,
+        loan_amount: float,
+        term: int,
+        total_monthly_installment: float,
         loan_score: float,
         risk_level: str,
         reason: str,
     ) -> str:
-        # reason у тебя JSON-строка: попробуем красиво распарсить
+        
         reason_pretty = reason
         try:
             parsed = json.loads(reason) if reason else []
@@ -38,6 +44,12 @@ class Mailing:
             f"Lastname: {lastname}\n"
             f"Birthdate: {birthdate}\n"
             f"Rodne cislo: {rodne_cislo}\n"
+            f"Employment place: {employment_place}\n"
+            f"Employment type: {employment_type}\n"
+            f"Monthly income: {monthly_income}\n"
+            f"Loan amount: {loan_amount}\n"
+            f"Term: {term}\n"
+            f"Total monthly installment: {total_monthly_installment}\n"
             f"\n"
             f"Loan score: {loan_score}\n"
             f"Risk level: {risk_level}\n"
@@ -53,6 +65,12 @@ class Mailing:
                 lastname=user.get("lastname", ""),
                 birthdate=str(user.get("birthdate", "")),
                 rodne_cislo=user.get("rodne_cislo", ""),
+                employment_place=user.get("employment_place", ""),
+                employment_type=user.get("employment_type", ""),
+                monthly_income=user.get("monthly_income", ""),
+                loan_amount=user.get("loan_amount",""),
+                term=user.get("term", ""),
+                total_monthly_installment=user.get("total_monthly_installment", ""),
                 loan_score=user.get("loan_score", ""),
                 risk_level=user.get("risk_level", ""),
                 reason=user.get("reason", ""),
@@ -64,6 +82,6 @@ class Mailing:
                 sender_email=self.sender_email,
                 receiver_email=self.receiver_email,
                 password=self.password,
-                subject=f"Scoring result: {user.get('name','')} {user.get('lastname','')}",
+                subject=f"Scoring result: {user.get('user_id', '')} {user.get('name','')} {user.get('lastname','')}",
                 body=body,
             )

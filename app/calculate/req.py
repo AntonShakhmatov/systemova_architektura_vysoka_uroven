@@ -1,5 +1,6 @@
 # app/calculate/req.py
 from __future__ import annotations
+import os
 import csv
 import datetime
 import time
@@ -123,7 +124,12 @@ def build_scoring_request_from_user(db: Session, user_id: int) -> ScoringRequest
 
     # 2. CSV path – loan history from CSV
     birthdate_for_filename = birthdate.strftime("%Y-%m-%d")
-    csv_path = f"/app/uploads/{name}_{lastname}_{birthdate_for_filename}_loan_history.csv"
+    csv_path_new = f"/app/uploads/{user_id}_{name}_{lastname}_{birthdate_for_filename}_loan_history.csv"
+    csv_path_old = f"/app/uploads/{name}_{lastname}_{birthdate_for_filename}_loan_history.csv"
+
+    csv_path = csv_path_new if os.path.exists(csv_path_new) else csv_path_old
+    if not os.path.exists(csv_path):
+        raise ValueError(f"Loan history CSV not found for user_id={user_id}")
 
     # 3. Reading CSV
     with open(csv_path, mode="r", encoding="utf-8") as csvfile:

@@ -65,6 +65,42 @@ def fetch_rodne_cislo(user_id: int) -> str:
         {"user_id": user_id}
     )
 
+def fetch_default_employment_place(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT employment_place FROM users WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_default_employment_type(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT employment_type FROM users WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_default_monthly_income(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT monthly_income FROM users WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_default_loan_amount(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT loan_amount FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_default_term(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT term FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_default_total_monthly_installment(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT total_monthly_installment FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
 #  ALl users who did loan request
 def fetch_user_profiles() -> List[Dict]:
     user_ids = fetch_all_user_ids()

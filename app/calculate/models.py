@@ -24,9 +24,8 @@ class ScoringRequest(BaseModel):
     had_past_due_payments: bool
     employment_type: EmploymentType
 
-    # поля из loan_request
-    term: int  # срок кредита (месяцы)
-    loan_amount: float  # сумма кредита
+    term: int 
+    loan_amount: float
 
 
 class ScoreResponse(BaseModel):

@@ -14,7 +14,7 @@ class Validator:
     def _fetch_user_row(self, user_id: int):
         query = text("""
             SELECT name, lastname, birthdate, rodne_cislo, phone, email, address,
-                   employment_type, monthly_income
+                employment_place, employment_type, monthly_income
             FROM users
             WHERE user_id = :user_id
         """)
@@ -43,15 +43,8 @@ class Validator:
             raise ValueError("User not found.")
 
         (
-            name,
-            lastname,
-            birthdate,
-            rodne_cislo,
-            phone,
-            email,
-            db_address,
-            db_employment_type,
-            db_monthly_income,
+        name, lastname, birthdate, rodne_cislo, phone, email, db_address,
+        employment_place, db_employment_type, db_monthly_income
         ) = row
 
         # --- Kontrola základních signup-dat ---

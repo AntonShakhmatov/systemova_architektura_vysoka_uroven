@@ -1,4 +1,4 @@
-# app/api_register/loan_history.py
+# app/api_registr/loan_history.py
 import requests
 import csv
 import os
@@ -30,8 +30,7 @@ class LoanHistory:
             print(f"[warn] Could not fetch loan history for {name} {lastname}: {e}")
             return {"error": "Could not fetch loan history"}
 
-    def save_loan_to_csv(self, history: dict, name: str, lastname: str, birthdate: str) -> None:
-        # If API will return the error
+    def save_loan_to_csv(self, history: dict, user_id: int, name: str, lastname: str, birthdate: str) -> None:
         if "error" in history:
             print(f"Error in loan history for {name} {lastname}: {history['error']}")
             return
@@ -41,11 +40,15 @@ class LoanHistory:
             print(f"No loan history available for {name} {lastname}.")
             return
 
-        filename = f"{name}_{lastname}_{birthdate}_loan_history.csv"
+        birthdate_norm = normalize_birthdate(birthdate)
+
+        safe_name = str(name).replace(" ", "_")
+        safe_lastname = str(lastname).replace(" ", "_")
+        filename = f"{user_id}_{safe_name}_{safe_lastname}_{birthdate_norm}_loan_history.csv"
         filepath = os.path.join(self.save_path, filename)
 
-        # fieldnames = list(loans[0].keys())
         fieldnames = [
+            "user_id",
             "opened_date",
             "closed_date",
             "remaining_balance",
@@ -59,6 +62,7 @@ class LoanHistory:
         rows = []
         for loan in loans:
             rows.append({
+                "user_id": user_id,
                 "opened_date": loan.get("opened_date", ""),
                 "closed_date": loan.get("closed_date", ""),
                 "remaining_balance": loan.get("remaining_balance", 0),
@@ -70,12 +74,11 @@ class LoanHistory:
             })
 
         with open(filepath, mode="w", newline="", encoding="utf-8") as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction="ignore")
             writer.writeheader()
-            writer.writerows(loans)
+            writer.writerows(rows)
 
         print(f"Loan history saved to {filepath}")
-
     def process_all_users(self) -> None:
 
         profiles = fetch_user_profiles()
@@ -89,6 +92,7 @@ class LoanHistory:
             )
             self.save_loan_to_csv(
                 history,
+                user["user_id"],
                 user["name"],
                 user["lastname"],
                 user["birthdate"],

@@ -68,10 +68,7 @@ def fetch_employment_type(user_id: int) -> str:
     )
 
 def save_user_id_to_db(db: Session, user_id: int) -> InsertRequest:
-    """
-    Агрегируем заявку: просто сохраняем user_id в loan_request_ids.
-    Это ровно тот момент, когда пользователь подал кредитную заявку.
-    """
+
     db_obj = InsertRequest(user_id=user_id)
     db.add(db_obj)
     db.commit()

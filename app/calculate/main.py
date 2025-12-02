@@ -123,8 +123,6 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score -= 60
         reasons.append("Very long loan term (> 120 months).")
 
-    # (по желанию можно ещё учитывать loan_amount, но ты этого пока не просил)
-
     # Normalizing the range
     if score < 0:
         score = 0

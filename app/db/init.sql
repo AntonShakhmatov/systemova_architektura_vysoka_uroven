@@ -136,3 +136,20 @@ INSERT INTO loan_request (
     36,
     145000
 );
+
+-- rozhodnuti
+CREATE TABLE IF NOT EXISTS loan_decisions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL,
+  decision INTEGER NOT NULL CHECK (decision IN (0,1)),
+  decided_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  decided_from TEXT,
+  email_message_id TEXT UNIQUE,
+  email_subject TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS processed_emails (
+  email_message_id TEXT PRIMARY KEY,
+  processed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
