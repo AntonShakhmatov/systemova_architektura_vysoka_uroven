@@ -8,7 +8,6 @@ DB_DSN = "mysql+pymysql://test:test@database/test?charset=utf8mb4"
 
 engine: Engine = create_engine(DB_DSN, future=True)
 def db_url() -> str:
-    # если задан корректный DATABASE_URL 
     url = os.getenv("DATABASE_URL")
     if url:
         return url
@@ -23,7 +22,6 @@ def get_engine():
     return create_engine(db_url(), pool_pre_ping=True, future=True)
 
 
-# === Session factory ===
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
@@ -31,8 +29,6 @@ SessionLocal = sessionmaker(
     future=True
 )
 
-
-# === Dependency for FastAPI ===
 def get_db():
     db: Session = SessionLocal()
     try:

@@ -35,7 +35,6 @@ class LoanManager:
             total_monthly_installment=payload.total_monthly_installment,
         )
 
-        # 2) Objekt žádosti (zatím jen v paměti, můžeš později uložit do tabulky loan_request)
         loan_request = {
             "user_id": payload.user_id,
             "loan_amount": payload.loan_amount,
@@ -67,7 +66,6 @@ def create_loan_request_endpoint(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # Agregace – zapíšeme user_id do loan_request_ids
     aggregate_row = save_user_id_to_db(db, payload.user_id)
 
     return {

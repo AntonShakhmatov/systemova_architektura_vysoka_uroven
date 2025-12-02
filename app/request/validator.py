@@ -71,7 +71,6 @@ class Validator:
         if total_monthly_installment <= 0:
             raise ValueError("Total monthly installment must be a positive value.")
 
-        # Pokud v systému známe měsíční příjem, můžeme zkontrolovat DTI
         if db_monthly_income is not None:
             try:
                 income = float(db_monthly_income)

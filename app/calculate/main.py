@@ -44,7 +44,7 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score -= 20
         reasons.append("Age outside the optimal range of 25–60 years.")
 
-    # 3) Loan history – délka a počet
+    # 3) Loan history
     if data.loan_history_years == 0:
         score -= 40
         reasons.append("No credit history.")
@@ -55,7 +55,7 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score += 40
         reasons.append("Sufficiently long credit history.")
 
-    # Bonus – počet aktivních úvěrů
+    # Počet aktivních úvěrů
     if data.active_loans_count == 0:
         # no active loans
         pass
@@ -109,12 +109,11 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score -= 50
         reasons.append("Student with potentially unstable income.")
 
-    # 6) Term – nový vliv срока кредита
+    # 6) Term
     if data.term <= 24:
         score += 20
         reasons.append("Short loan term (<= 24 months).")
     elif data.term <= 60:
-        # neutrální pásmo
         pass
     elif data.term <= 120:
         score -= 30

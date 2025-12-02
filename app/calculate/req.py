@@ -184,10 +184,8 @@ def build_scoring_request_from_user(db: Session, user_id: int) -> ScoringRequest
 
     loan_history_years = calc_loan_history_years_from_csv(csv_path)
 
-    # terms is or was broken
     had_past_due_payments = (max_arrears_last_12m > 0) or (current_arrears_days > 0)
 
-    # employment_type к enum
     employment_type = EmploymentType(employment_type_str)
 
     # Collecting ScoringRequest
