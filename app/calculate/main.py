@@ -1,3 +1,4 @@
+# app/calculate/main.py
 import csv
 import json
 from datetime import datetime
@@ -6,11 +7,10 @@ from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 from typing import List
+
 from calculate.req import build_scoring_request_from_user, save_score_to_db
-from calculate.models import ScoringRequest, ScoreResponse, EmploymentType, ScoreResponse
+from calculate.models import ScoringRequest, ScoreResponse, EmploymentType
 from database.database_connector import get_db
-
-
 
 app = FastAPI(title="Kredit FastAPI")
 
@@ -44,7 +44,7 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score -= 20
         reasons.append("Age outside the optimal range of 25–60 years.")
 
-    # 3) Loan history
+    # 3) Loan history – délka a počet
     if data.loan_history_years == 0:
         score -= 40
         reasons.append("No credit history.")
@@ -55,12 +55,12 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score += 40
         reasons.append("Sufficiently long credit history.")
 
-    # Bonus
+    # Bonus – počet aktivních úvěrů
     if data.active_loans_count == 0:
         # no active loans
         pass
     elif data.active_loans_count <= 3:
-        score += 20 
+        score += 20
     elif data.active_loans_count <= 6:
         score += 0
         reasons.append("Increased number of active loans.")
@@ -109,6 +109,22 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
         score -= 50
         reasons.append("Student with potentially unstable income.")
 
+    # 6) Term – nový vliv срока кредита
+    if data.term <= 24:
+        score += 20
+        reasons.append("Short loan term (<= 24 months).")
+    elif data.term <= 60:
+        # neutrální pásmo
+        pass
+    elif data.term <= 120:
+        score -= 30
+        reasons.append("Long loan term (61–120 months).")
+    else:
+        score -= 60
+        reasons.append("Very long loan term (> 120 months).")
+
+    # (по желанию можно ещё учитывать loan_amount, но ты этого пока не просил)
+
     # Normalizing the range
     if score < 0:
         score = 0
@@ -125,12 +141,6 @@ def calculate_loan_score(data: ScoringRequest) -> ScoreResponse:
 
     return ScoreResponse(loan_score=score, risk_level=risk_level, reason=reasons)
 
-
-# @app.get("/score/{user_id}", response_model=ScoreResponse)
-# def score_by_user_id(user_id: int):
-#     # data z DB+CSV a build ScoringRequest
-#     scoring_request: ScoringRequest = build_scoring_request_from_user(user_id)
-#     return calculate_loan_score(scoring_request)
 
 @app.get("/score/{user_id}", response_model=ScoreResponse)
 def score_by_user_id(

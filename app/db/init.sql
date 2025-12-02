@@ -19,11 +19,29 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS bank_profile (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL UNIQUE,
+  name VARCHAR(255) NOT NULL,
+  lastname VARCHAR(255) NOT NULL,
+  phone VARCHAR(255) NOT NULL,
+  birthdate DATETIME NOT NULL,
+  rodne_cislo VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  employment_place VARCHAR(255) NOT NULL,
+  employment_type VARCHAR(255) NOT NULL,
+  monthly_income DECIMAL (15,2) NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS loan_request(
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   loan_amount DECIMAL(15, 2) NOT NULL,
   percent DECIMAL(15,2) NOT NULL,
+  term INT NOT NULL,
   total_monthly_installment DECIMAL(15, 2) NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -32,6 +50,13 @@ CREATE TABLE IF NOT EXISTS loan_request(
   CONSTRAINT fk_loan_request_user
     FOREIGN KEY (user_id) REFERENCES users(user_id)
     ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS loan_request_ids(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS loan_history (
@@ -102,104 +127,12 @@ INSERT INTO loan_request (
     user_id,
     loan_amount,
     percent, 
+    term,
     total_monthly_installment
 ) VALUES (
     1, 
     10000000,
     12,
+    36,
     145000
 );
-
-
--- CREATE TABLE IF NOT EXISTS loan_history_active (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     user_id INT NOT NULL,
---     opened_date DATETIME NOT NULL,
---     remaining_balance DECIMAL(15,2) NOT NULL,
---     monthly_installment DECIMAL(15,2) NOT NULL,
---     status VARCHAR(50) NOT NULL,
---     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     INDEX idx_loan_history_user_id (user_id),
---     CONSTRAINT fk_loan_history_profile
---       FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---       ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- CREATE TABLE IF NOT EXISTS loan_history_closed (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     user_id INT NOT NULL,
---     opened_date DATETIME NOT NULL,
---     closed_date DATETIME NOT NULL,
---     total_paid DECIMAL(15,2) NOT NULL,
---     status VARCHAR(50) NOT NULL,
---     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     INDEX idx_loan_history_user_id (user_id),
---     CONSTRAINT fk_loan_history_profile
---       FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---       ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- CREATE TABLE IF NOT EXISTS delinquency_dates (
---     id INT AUTO_INCREMENT PRIMARY KEY,
---     user_id INT NOT NULL,
---     current_arrears_days INT NOT NULL,
---     max_arrears_12_months INT NOT NULL,
---     max_arrears_lifetime INT NOT NULL,
---     arrearc_dates_12_months LONGTEXT NOT NULL,
---     has_written_off_loans BOOLEAN NOT NULL,
---     has_restructurings BOOLEAN NOT NULL,
---     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---     INDEX idx_delinquency_user_id (user_id),
---     CONSTRAINT fk_delinquency_profile
---       FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---       ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- CREATE TABLE IF NOT EXISTS financial_obligations (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   user_id INT NOT NULL,
---   monthly_obligations DECIMAL(15,2) NOT NULL,
---   total_outstanding_loans DECIMAL(15,2) NOT NULL,
---   number_of_active_loans INT NOT NULL,
---   number_of_closed_loans INT NOT NULL,
---   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---   INDEX idx_users_profile_id (user_id),
---   CONSTRAINT fk_users_profile
---     FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---     ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- CREATE TABLE IF NOT EXISTS enquiries (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   user_id INT NOT NULL,
---   enquiries_last_6_months INT NOT NULL,
---   enquiries_last_12_months INT NOT NULL,
---   enquiries_rejected_applications INT NOT NULL,
---   recent_inquiries_details LONGTEXT NOT NULL,
---   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---   INDEX idx_enquiries_user_id (user_id),
---   CONSTRAINT fk_enquiries_profile
---     FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---     ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- CREATE TABLE IF NOT EXISTS risk_flags (
---   id INT AUTO_INCREMENT PRIMARY KEY,
---   user_id INT NOT NULL,
---   risk_score DECIMAL(5,2) NOT NULL,
---   risk_bands VARCHAR(50) NOT NULL,
---   fraud_flags LONGTEXT NOT NULL,
---   adress_missmatch BOOLEAN NOT NULL,
---   identity_consistency_score DECIMAL(5,2) NOT NULL,
---   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
---   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---   INDEX idx_risk_flags_user_id (user_id),
---   CONSTRAINT fk_risk_flags_profile
---     FOREIGN KEY (user_id) REFERENCES profiles(user_id)
---     ON DELETE CASCADE ON UPDATE CASCADE
--- ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

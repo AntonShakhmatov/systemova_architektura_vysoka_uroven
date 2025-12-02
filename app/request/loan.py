@@ -1,31 +1,77 @@
-from app.request.validator import validate_loan_request
+# app/request/loan.py
+from fastapi import FastAPI, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.request.validator import Validator
+from app.request.req import save_user_id_to_db
+from app.database.database_connector import get_db
+
+app = FastAPI(title="Kredit FastAPI")
+
+
+class LoanRequestIn(BaseModel):
+    user_id: int
+    loan_amount: float
+    term: int
+    percent: float
+    total_monthly_installment: float
 
 
 class LoanManager:
-    def __init__(self):
-        self.loans = {}
+    def __init__(self, validator: Validator):
+        self.validator = validator
 
-    def _get_request_for_loan(self, user_id: int, name, lastname, birthdate, rodne_cislo, phone, email, address, type_of_employment, monthly_income, amount, term, status) -> dict:
-        # This is a placeholder for actual implementation
-        return {"user_id": user_id, "name": name, "lastname": lastname, "birthdate":birthdate, "rodne_cislo": rodne_cislo, "phone": phone, "email": email, "amount": amount, "address": address, "type_of_employment": type_of_employment, "monthly_income": monthly_income, "term": term, status: "active"}
-    
-    def create_loan_request(
-        self, user_id: int, name, lastname, birthdate, rodne_cislo, phone,
-        email, address, type_of_employment, monthly_income, amount, term
-    ) -> dict:
-        
-        # 1. validace údajů žadatele
+    def create_loan_request(self, payload: LoanRequestIn) -> dict:
+        """
+        1) Validace se provádí na základě dat uložených při signup
+           + parametrů konkrétní úvěrové žádosti.
+        """
         self.validator.validate_loan_request(
-            user_id, name, lastname, birthdate, rodne_cislo, phone,
-            email, address, type_of_employment, monthly_income, amount, term
+            user_id=payload.user_id,
+            loan_amount=payload.loan_amount,
+            term=payload.term,
+            percent=payload.percent,
+            total_monthly_installment=payload.total_monthly_installment,
         )
 
-        # 2. dovoluji vytvořit žádost o úvěr
-        loan_request = self._get_request_for_loan(
-            user_id, name, lastname, birthdate, rodne_cislo, phone, email,
-            address, type_of_employment, monthly_income, amount, term,
-            status="pending"
-        )
+        # 2) Objekt žádosti (zatím jen v paměti, můžeš později uložit do tabulky loan_request)
+        loan_request = {
+            "user_id": payload.user_id,
+            "loan_amount": payload.loan_amount,
+            "term": payload.term,
+            "percent": payload.percent,
+            "total_monthly_installment": payload.total_monthly_installment,
+            "status": "pending",
+        }
 
         return loan_request
-    
+
+
+loan_manager = LoanManager(Validator())
+
+
+@app.post("/loan-requests")
+def create_loan_request_endpoint(
+    payload: LoanRequestIn,
+    db: Session = Depends(get_db),
+):
+    """
+    ČÁST 1 + ČÁST 2:
+    - přijímá nové online žádosti (POST /loan-requests),
+    - automaticky předzpracuje (validace vůči users + kontrola parametrů úvěru),
+    - uloží user_id do loan_request_ids (agregace žádostí).
+    """
+    try:
+        loan_request = loan_manager.create_loan_request(payload)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    # Agregace – zapíšeme user_id do loan_request_ids
+    aggregate_row = save_user_id_to_db(db, payload.user_id)
+
+    return {
+        "loan_request": loan_request,
+        "loan_request_aggregate_id": aggregate_row.id,
+        "message": "Loan request accepted, validated and aggregated.",
+    }

@@ -1,90 +1,92 @@
+# app/request/validator.py
 import re
-from app.database.database_connector import *
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine import Engine
+
+from app.database.database_connector import get_engine
 
 
 class Validator:
     def __init__(self):
-        self.validator = {}
+        self.engine: Engine = get_engine()
 
-    def _get_name(self, user_id: int) -> str:
-        query = text("SELECT name FROM users WHERE id = :user_id")
+    def _fetch_user_row(self, user_id: int):
+        query = text("""
+            SELECT name, lastname, birthdate, rodne_cislo, phone, email, address,
+                   employment_type, monthly_income
+            FROM users
+            WHERE user_id = :user_id
+        """)
         try:
-            with engine.connect() as conn:
+            with self.engine.connect() as conn:
                 result = conn.execute(query, {"user_id": user_id})
                 row = result.fetchone()
-                if row:
-                    return row['name']
-                return ""
+                return row
         except SQLAlchemyError as e:
             print(f"Database error: {e}")
-            return ""   
-        
-    def _get_lastname(self, user_id: int) -> str:
-        query = text("SELECT lastname FROM users WHERE id = :user_id")
-        try:
-            with engine.connect() as conn:
-                result = conn.execute(query, {"user_id": user_id})
-                row = result.fetchone()
-                if row:
-                    return row['lastname']
-                return ""
-        except SQLAlchemyError as e:
-            print(f"Database error: {e}")
-            return ""
-        
-    def _get_birthdate(self, user_id: int) -> str:
-        query = text("SELECT birthdate FROM users WHERE id = :user_id")
-        try:
-            with engine.connect() as conn:
-                result = conn.execute(query, {"user_id": user_id})
-                row = result.fetchone()
-                if row:
-                    return row['birthdate']
-                return ""
-        except SQLAlchemyError as e:
-            print(f"Database error: {e}")
-            return ""
+            return None
 
-    def _get_rodne_cislo(self, user_id: int) -> str:
-        query = text("SELECT rodne_cislo FROM users WHERE id = :user_id")
-        try:
-            with engine.connect() as conn:
-                result = conn.execute(query, {"user_id": user_id})
-                row = result.fetchone()
-                if row:
-                    return row['rodne_cislo']
-                return ""
-        except SQLAlchemyError as e:
-            print(f"Database error: {e}")
-            return "" 
-    
+    def validate_loan_request(
+        self,
+        user_id: int,
+        loan_amount: float,
+        term: int,
+        percent: float,
+        total_monthly_installment: float
+    ) -> bool:
+        """
+        Validace loan requestu, který pracuje s už existujícím uživatelem (po signup).
+        """
+        row = self._fetch_user_row(user_id)
+        if not row:
+            raise ValueError("User not found.")
 
-    def validate_loan_request(self, user_id: int, name, lastname, birthdate, rodne_cislo, phone, email, address, type_of_employment, monthly_income, amount, term) -> dict:
-            # Perform validation logic here
-            if name != self._get_name(user_id):
-                raise ValueError("Name does not match our records.")
-            if lastname != self._get_lastname(user_id):
-                raise ValueError("Lastname does not match our records.")
-            if birthdate != self._get_birthdate(user_id):
-                raise ValueError("Birthdate does not match our records.")
-            if rodne_cislo != self._get_rodne_cislo(user_id):
-                raise ValueError("Rodne cislo does not match our records.")
-            if not re.fullmatch(r"\+?[1-9]\d{1,14}$", phone):
-                raise ValueError("Invalid phone number format.")
-            if address.strip() == "":
-                raise ValueError("Address cannot be empty.")
-            if type_of_employment not in ["employed", "self-employed", "unemployed", "student"]:
-                raise ValueError("Invalid type of employment.")
-            if monthly_income < 10000:
-                raise ValueError("Monthly income must be at least 10,000.")
-            if re.fullmatch(r"[^@]+@[^@]+\.[^@]+", email) is None:
-                raise ValueError("Invalid email format.")
-            if amount <= 0:
-                raise ValueError("Amount must be positive values.")
-            elif term <= 0:
-                raise ValueError("Term must be positive values.")
-            # Additional validation can be added here
-            return True
+        (
+            name,
+            lastname,
+            birthdate,
+            rodne_cislo,
+            phone,
+            email,
+            db_address,
+            db_employment_type,
+            db_monthly_income,
+        ) = row
+
+        # --- Kontrola základních signup-dat ---
+        if not name or not lastname:
+            raise ValueError("User name or lastname is missing in the system.")
+
+        if not re.fullmatch(r"\+?[1-9]\d{1,14}$", phone or ""):
+            raise ValueError("Invalid phone number format in user profile.")
+
+        if re.fullmatch(r"[^@]+@[^@]+\.[^@]+", email or "") is None:
+            raise ValueError("Invalid email format in user profile.")
+
+        # --- Kontrola parametrů úvěru ---
+
+        if loan_amount <= 0:
+            raise ValueError("Loan amount must be a positive value.")
+
+        if term <= 0:
+            raise ValueError("Term must be a positive value.")
+
+        if percent <= 0 or percent > 100:
+            raise ValueError("Percent must be in range (0, 100].")
+
+        if total_monthly_installment <= 0:
+            raise ValueError("Total monthly installment must be a positive value.")
+
+        # Pokud v systému známe měsíční příjem, můžeme zkontrolovat DTI
+        if db_monthly_income is not None:
+            try:
+                income = float(db_monthly_income)
+            except (TypeError, ValueError):
+                income = 0.0
+
+            if income > 0 and total_monthly_installment > income * 0.7:
+                # jemné business pravidlo – splátky > 70 % příjmu
+                raise ValueError("Monthly installment is too high compared to income.")
+
+        return True
