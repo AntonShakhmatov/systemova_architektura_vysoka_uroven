@@ -1,4 +1,4 @@
-# app/mailing/server.py
+# app/Services/Mailing/server.py
 import smtplib
 import ssl
 from email.message import EmailMessage

@@ -1,6 +1,7 @@
+# app/database/database_connectror.py
+
 import os
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError, OperationalError
+from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, Session
 

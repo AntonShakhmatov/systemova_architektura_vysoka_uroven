@@ -1,11 +1,11 @@
-# app/request/loan.py
+# app/Controllers/LoanRequest/loan.py
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.request.validator import Validator
-from app.request.req import save_user_id_to_db
-from app.database.database_connector import get_db
+from Controllers.LoanRequest.validator import Validator
+from Controllers.LoanRequest.req import save_user_id_to_db
+from database.database_connector import get_db
 
 app = FastAPI(title="Kredit FastAPI")
 

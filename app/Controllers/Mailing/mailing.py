@@ -1,7 +1,7 @@
-# app/mailing/mailing.py
+# app/Controllers/Mailing/mailing.py
 import json
-from mailing.req import fetch_user_profiles
-from mailing.server import sender
+from Controllers.Mailing.req import fetch_user_profiles
+from Services.Mailing.server import sender
 
 
 class Mailing:

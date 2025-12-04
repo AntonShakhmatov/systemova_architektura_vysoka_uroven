@@ -1,10 +1,10 @@
-# app/request/validator.py
+# app/Controllers/LoanRequest/validator.py
 import re
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.engine import Engine
 
-from app.database.database_connector import get_engine
+from database.database_connector import get_engine
 
 
 class Validator:

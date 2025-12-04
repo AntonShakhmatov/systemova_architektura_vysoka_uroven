@@ -1,4 +1,4 @@
-# app/request/models.py
+# app/Models/LoanRequest/loan_request_model.py
 from pydantic import BaseModel
 from sqlalchemy import Column, Integer, DateTime, func
 from sqlalchemy.orm import declarative_base

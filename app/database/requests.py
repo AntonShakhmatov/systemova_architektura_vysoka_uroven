@@ -1,13 +1,13 @@
-# app/api_register/req.py
+# app/database/requests.py
 from __future__ import annotations
 import time
 from typing import Optional, List, Dict
+from typing import Optional
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError, OperationalError
 
 from database.database_connector import get_engine
-
 
 def _fetch_single_value(query: str, params: dict) -> str:
     sql = text(query)
@@ -17,13 +17,12 @@ def _fetch_single_value(query: str, params: dict) -> str:
             with get_engine().connect() as conn:
                 row = conn.execute(sql, params).first()
                 val: Optional[str] = row[0] if row else ""
-                return val or ""
+                return (val or "")
         except (OperationalError, SQLAlchemyError) as e:
             print(f"[warn] DB error (attempt {attempt+1}/20): {e}")
             time.sleep(1.5)
 
     return ""
-
 
 # All user_ids who did loan requests(get from DB)
 def fetch_all_user_ids() -> List[int]:
@@ -39,6 +38,23 @@ def fetch_all_user_ids() -> List[int]:
             time.sleep(1.5)
 
     return []
+
+#  ALl users who did loan request
+def fetch_user_profiles() -> List[Dict]:
+    user_ids = fetch_all_user_ids()
+    result = []
+
+    for uid in user_ids:
+        profile = {
+            "user_id": uid,
+            "name": fetch_default_name(uid),
+            "lastname": fetch_default_lastname(uid),
+            "birthdate": fetch_default_birthdate(uid),
+            "rodne_cislo": fetch_rodne_cislo(uid)
+        }
+        result.append(profile)
+
+    return result
 
 
 def fetch_default_name(user_id: int) -> str:
@@ -58,6 +74,30 @@ def fetch_default_birthdate(user_id: int) -> str:
         "SELECT birthdate FROM users WHERE user_id = :user_id",
         {"user_id": user_id}
     )
+
+def fetch_monthly_income(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT monthly_income FROM users WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_loan_amount(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT loan_amount FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_total_monthly_installment(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT total_monthly_installment FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
+
+def fetch_employment_type(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT employment_type FROM users WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )   
 
 def fetch_rodne_cislo(user_id: int) -> str:
     return _fetch_single_value(
@@ -101,19 +141,50 @@ def fetch_default_total_monthly_installment(user_id: int) -> str:
         {"user_id": user_id}
     )
 
-#  ALl users who did loan request
-def fetch_user_profiles() -> List[Dict]:
-    user_ids = fetch_all_user_ids()
-    result = []
+def fetch_term(user_id: int) -> str:
+    return _fetch_single_value(
+        "SELECT term FROM loan_request WHERE user_id = :user_id",
+        {"user_id": user_id}
+    )
 
-    for uid in user_ids:
-        profile = {
-            "user_id": uid,
-            "name": fetch_default_name(uid),
-            "lastname": fetch_default_lastname(uid),
-            "birthdate": fetch_default_birthdate(uid),
-            "rodne_cislo": fetch_rodne_cislo(uid)
-        }
-        result.append(profile)
 
-    return result
+
+
+
+def fetch_default_loan_score_from_scoring_response(uid: int) -> str:
+    return _fetch_single_value(
+        """
+        SELECT loan_score
+        FROM scoring_response
+        WHERE user_id = :uid
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        {"uid": uid},
+    )
+
+
+def fetch_default_risk_level_from_scoring_response(uid: int) -> str:
+    return _fetch_single_value(
+        """
+        SELECT risk_level
+        FROM scoring_response
+        WHERE user_id = :uid
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        {"uid": uid},
+    )
+
+
+def fetch_default_reason_from_scoring_response(uid: int) -> str:
+    return _fetch_single_value(
+        """
+        SELECT reason
+        FROM scoring_response
+        WHERE user_id = :uid
+        ORDER BY created_at DESC
+        LIMIT 1
+        """,
+        {"uid": uid},
+    )

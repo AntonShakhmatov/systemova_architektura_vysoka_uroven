@@ -1,9 +1,10 @@
-# app/api_registr/loan_history.py
+# app/Controllers/ApiRegister/loan_history.py
+
 import requests
 import csv
 import os
 from urllib.parse import quote
-from api_registr.req import fetch_user_profiles
+from database.requests import fetch_user_profiles
 
 def normalize_birthdate(birthdate: str) -> str:
     if not birthdate:

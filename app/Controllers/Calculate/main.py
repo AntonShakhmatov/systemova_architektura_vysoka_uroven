@@ -1,15 +1,12 @@
-# app/calculate/main.py
-import csv
-import json
-from datetime import datetime
+# app/Controllers/Calculate/main.py
+
 from enum import Enum
-from fastapi import FastAPI, HTTPException, Depends, Header
-from pydantic import BaseModel, Field
+from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from calculate.req import build_scoring_request_from_user, save_score_to_db
-from calculate.models import ScoringRequest, ScoreResponse, EmploymentType
+from Controllers.Calculate.req import build_scoring_request_from_user, save_score_to_db
+from Models.Calculate.calculate_model import ScoringRequest, ScoreResponse, EmploymentType
 from database.database_connector import get_db
 
 app = FastAPI(title="Kredit FastAPI")
