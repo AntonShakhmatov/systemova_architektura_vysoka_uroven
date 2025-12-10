@@ -1,13 +1,13 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+WORKDIR /var/www/html/backend
 
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/backend
 
-COPY . /app
+COPY . /var/www/html/backend
 
 RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install --no-cache-dir uvicorn
+# RUN pip install --no-cache-dir uvicorn
 
 EXPOSE 5000 8000  
 
